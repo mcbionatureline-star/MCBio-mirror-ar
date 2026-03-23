@@ -7,70 +7,111 @@
    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
+   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
    <style>
-       :root { --gold: #c5a059; --dark: #070807; }
-       body { margin: 0; background: var(--dark); font-family: 'Montserrat', sans-serif; color: white; overflow: hidden; }
-       #mirror-container { position: relative; width: 100vw; height: 100vh; }
-       video, canvas { position: absolute; height: 100%; width: 100%; object-fit: cover; transform: scaleX(-1); }
-       #welcome-screen { position: absolute; z-index: 2000; inset: 0; background: var(--dark); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-       .logo-img { width: 220px; margin-bottom: 50px; }
-       .path-btn { width: 300px; padding: 20px; border: 1px solid var(--gold); color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 20px; letter-spacing: 4px; cursor: pointer; text-align: center; }
-       #info-panel { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(0,0,0,0.8); padding: 15px; border: 1px solid var(--gold); display: none; z-index: 1000; backdrop-filter: blur(10px); }
-       #p-name { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.1rem; margin: 0; text-align: center; text-transform: uppercase; }
+       :root { --gold: #c5a059; --dark: #070807; --white: #ffffff; }
+       body { margin: 0; background: var(--dark); font-family: 'Montserrat', sans-serif; color: var(--white); overflow: hidden; width: 100vw; height: 100vh; }
+       #mirror-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+       video, canvas { position: absolute; height: 100%; width: 100%; object-fit: cover; transform: scaleX(-1); z-index: 1; }
+
+       #welcome-screen {
+           position: absolute; z-index: 2000; inset: 0;
+           background-image: url('sfondo-benvenuto.jpg'); background-size: cover; background-position: center;
+           display: flex; flex-direction: column; align-items: center; justify-content: center;
+           transition: opacity 1s ease;
+       }
+       #welcome-screen::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%); z-index: -1; }
+
+       .welcome-content { text-align: center; max-width: 85%; z-index: 10; }
+       .logo-img { width: 180px; margin-bottom: 25px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+       .welcome-text { font-family: 'Montserrat', sans-serif; font-weight: 200; text-transform: uppercase; color: var(--white); letter-spacing: 3px; font-size: 0.9rem; line-height: 1.8; margin-bottom: 40px; }
+       
+       .path-btn { width: 280px; padding: 18px; border: 1px solid var(--gold); background: rgba(197,160,89,0.1); color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 18px; letter-spacing: 4px; cursor: pointer; text-align: center; text-transform: uppercase; font-size: 0.8rem; transition: 0.4s; }
+       .path-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px rgba(197,160,89,0.5); }
+
+       #info-panel { position: absolute; top: 25px; width: 400px; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid var(--gold); display: none; z-index: 1000; backdrop-filter: blur(10px); border-radius: 4px; }
+       #p-name { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.1rem; margin: 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid rgba(197,160,89,0.3); padding-bottom: 10px; }
+       
        .buy-row { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; }
-       .btn-buy { background: var(--gold); color: #000; padding: 10px 20px; text-decoration: none; font-weight: 700; font-size: 0.7rem; }
-       #product-ui { position: absolute; bottom: 130px; width: 100%; display: none; justify-content: center; z-index: 1000; }
-       .shelf { display: flex; gap: 10px; padding: 10px; overflow-x: auto; max-width: 95%; }
-       .prod-item { padding: 12px 20px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-size: 0.7rem; white-space: nowrap; cursor: pointer; }
-       .prod-item.active { background: var(--gold); color: #000; font-weight: 700; box-shadow: 0 0 15px var(--gold); }
-       .btn-back { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 0.6rem; text-decoration: underline; z-index: 1100; display:none; cursor: pointer; }
+       .btn-buy { background: var(--gold); color: #000; padding: 10px 20px; text-decoration: none; font-weight: 700; font-size: 0.7rem; letter-spacing: 1px; border-radius: 2px; }
+       
+       /* QR Container con istruzione */
+       .qr-box { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+       #qrcode { background: white; padding: 5px; border-radius: 4px; cursor: pointer; transition: 0.3s; }
+       #qrcode:hover { transform: scale(1.05); }
+       .qr-tip { color: var(--gold); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; animation: pulse 2s infinite; }
+
+       @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+       #product-ui { position: absolute; bottom: 120px; width: 100%; display: none; justify-content: center; z-index: 1000; }
+       .shelf { display: flex; gap: 10px; padding: 10px; overflow-x: auto; max-width: 95%; scrollbar-width: none; background: rgba(0,0,0,0.4); border-radius: 50px; }
+       .prod-item { padding: 12px 20px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-size: 0.65rem; white-space: nowrap; cursor: pointer; font-weight: 600; letter-spacing: 1px; }
+       .prod-item.active { background: var(--gold); color: #000; transform: scale(1.05); box-shadow: 0 0 15px var(--gold); }
+       .btn-back { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 0.6rem; text-decoration: none; border-bottom: 1px solid var(--gold); z-index: 1100; display:none; letter-spacing: 2px; cursor: pointer; }
    </style>
 </head>
 <body>
 <div id="mirror-container">
    <video id="input_video" style="display:none"></video>
    <canvas id="output_canvas"></canvas>
+   
    <div id="welcome-screen">
-       <img src="logo.jpg" class="logo-img">
-       <div class="path-btn" onclick="openPath('pura')">PURA LINFA</div>
-       <div class="path-btn" onclick="openPath('sorgente')">SORGENTE</div>
-       <div class="path-btn" onclick="openPath('forza')">FORZA NATURA</div>
+       <div class="welcome-content">
+           <img src="logo.jpg" class="logo-img">
+           <p class="welcome-text">Benvenuta nel mondo della cosmetica naturale di<br><strong>MCBIONATURELINE</strong></p>
+           <div class="path-btn" onclick="openPath('pura')">PURA LINFA</div>
+           <div class="path-btn" onclick="openPath('sorgente')">SORGENTE</div>
+           <div class="path-btn" onclick="openPath('forza')">FORZA NATURA</div>
+       </div>
    </div>
+
    <div id="info-panel">
        <h2 id="p-name"></h2>
        <div class="buy-row">
-           <a id="buy-link" href="#" target="_blank" class="btn-buy">ESPLORA</a>
-           <div id="qrcode"></div>
+           <a id="buy-link" href="#" target="_blank" class="btn-buy">ESPLORA SUL SITO</a>
+           <div class="qr-box">
+               <div id="qrcode" onclick="window.open(document.getElementById('buy-link').href, '_blank')"></div>
+               <span class="qr-tip">Tocca il QR per acquistare</span>
+           </div>
        </div>
    </div>
-   <div id="btn-reset" class="btn-back" onclick="location.reload()">CAMBIA PERCORSO</div>
-   <div id="product-ui">
-       <div id="shelf-list" class="shelf"></div>
-   </div>
+   <div id="btn-reset" class="btn-back" onclick="location.reload()">TORNA AI PERCORSI</div>
+   <div id="product-ui"><div id="shelf-list" class="shelf"></div></div>
 </div>
+
 <script>
-const SITE = "https://www.mcbionatureline.com"; 
+const SITE = "https://mcbionatureline.com"; 
+
 const DATABASE = {
    'pura': [
-       { name: 'MOUSSE', url: '/mousse', color:'#FFFFFF', glow:15 },
-       { name: 'ESFOLIANTE', url: '/esfoliante', color:'#FFCCCC', glow:15 }
+       { name: 'MOUSSE AL LIMONE', url: '/product/mousse-detergente-al-limone/', color:'#FFF176', glow:35 },
+       { name: 'TONICO RINFRESCANTE', url: '/product/tonico-viso-idratante-rinfrescante/', color:'#B3E5FC', glow:40 },
+       { name: 'LATTE DETERGENTE', url: '/product/latte-detergente/', color:'#F5F5F5', glow:30 },
+       { name: 'SIERO ENZIMATICO', url: '/product/siero-esfoliante-enzimatico/', color:'#CCFF00', glow:45 }
    ],
    'sorgente': [
-       { name: 'SIERO IDRATANTE', url: '/siero-idratante', color:'#00E5FF', glow:50 },
-       { name: 'SIERO ANTI-AGE', url: '/siero-antiage', color:'#CC00FF', glow:60 }
+       { name: 'SIERO IDRATANTE', url: '/product/siero-viso-idratante-lenitivo/', color:'#81D4FA', glow:55 },
+       { name: 'SIERO RIVITALIZZANTE', url: '/product/siero-anti-age-rivitalizzante/', color:'#9C27B0', glow:60 },
+       { name: 'FILLER LIFTING', url: '/product/filler-effetto-lifting/', color:'#E0F7FA', glow:50 },
+       { name: 'CONTORNO OCCHI', url: '/product/contorno-occhi-con-effetto-schiarente/', color:'#E0E0E0', glow:40, eyesOnly: true }
    ],
    'forza': [
-       { name: 'MELOGRANO', url: '/melograno', color:'#FF3333', glow:30 },
-       { name: 'NUTRIENTE', url: '/nutriente', color:' #FFD700', glow:45 },
-       { name: '4 CORTECCE', url: '/4-cortecce', color:'#FF8C00', glow:55 }
+       { name: 'CREMA ANTI-AGE', url: '/product/crema-intensiva-anti-age/', color:'#FF4D4D', glow:45 },
+       { name: 'CREMA NUTRIENTE 24H', url: '/product/crema-viso-nutriente-24-h-idratazione-intensa-e-prolungata/', color:'#FFD700', glow:50 },
+       { name: 'CREMA MANTENIMENTO', url: '/product/crema-intensiva-naturale-di-mantenimento/', color:'#00FFB3', glow:50 }
    ]
 };
+
 let activeConf = null;
+
 function openPath(id) {
-   document.getElementById('welcome-screen').style.display = 'none';
-   document.getElementById('product-ui').style.display = 'flex';
-   document.getElementById('btn-reset').style.display = 'block';
+   document.getElementById('welcome-screen').style.opacity = '0';
+   setTimeout(() => {
+       document.getElementById('welcome-screen').style.display = 'none';
+       document.getElementById('product-ui').style.display = 'flex';
+       document.getElementById('btn-reset').style.display = 'block';
+       document.getElementById('info-panel').style.display = 'block';
+   }, 800);
    const shelf = document.getElementById('shelf-list');
    shelf.innerHTML = '';
    DATABASE[id].forEach((p, index) => {
@@ -86,46 +127,62 @@ function openPath(id) {
        if(index === 0) item.click(); 
    });
 }
+
 function displayProduct(p) {
-   document.getElementById('info-panel').style.display = 'block';
    document.getElementById('p-name').innerText = p.name;
    document.getElementById('buy-link').href = SITE + p.url;
    document.getElementById('qrcode').innerHTML = '';
-   new QRCode(document.getElementById('qrcode'), { text: SITE + p.url, width: 40, height: 40 });
+   new QRCode(document.getElementById('qrcode'), { text: SITE + p.url, width: 60, height: 60 });
    activeConf = p;
 }
+
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('output_canvas');
 const canvasCtx = canvasElement.getContext('2d');
+
 function onResults(results) {
     canvasElement.width = window.innerWidth;
     canvasElement.height = window.innerHeight;
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+    
     if (results.multiFaceLandmarks && activeConf) {
         for (const landmarks of results.multiFaceLandmarks) {
             canvasCtx.beginPath();
-            [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109].forEach((idx, i) => {
-                let x = landmarks[idx].x * canvasElement.width;
-                let y = landmarks[idx].y * canvasElement.height;
-                if(i===0) canvasCtx.moveTo(x,y); else canvasCtx.lineTo(x,y);
-            });
+            if (activeConf.eyesOnly) {
+                [33, 133, 159, 145, 362, 263, 386, 374].forEach((idx, i) => {
+                    let x = landmarks[idx].x * canvasElement.width;
+                    let y = landmarks[idx].y * canvasElement.height;
+                    if(i === 0 || i === 4) canvasCtx.moveTo(x,y); else canvasCtx.lineTo(x,y);
+                });
+            } else {
+                [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109].forEach((idx, i) => {
+                    let x = landmarks[idx].x * canvasElement.width;
+                    let y = landmarks[idx].y * canvasElement.height;
+                    if(i===0) canvasCtx.moveTo(x,y); else canvasCtx.lineTo(x,y);
+                });
+            }
             canvasCtx.closePath();
-            // SOLO BAGLIORE SUI BORDI - NIENTE "CENERE" SUL VISO
-            canvasCtx.globalCompositeOperation = "screen";
+            canvasCtx.globalCompositeOperation = "screen"; 
             canvasCtx.shadowBlur = activeConf.glow;
             canvasCtx.shadowColor = activeConf.color;
             canvasCtx.strokeStyle = activeConf.color;
-            canvasCtx.lineWidth = 5;
+            canvasCtx.lineWidth = 6; 
             canvasCtx.stroke();
+            canvasCtx.globalAlpha = 0.15;
+            canvasCtx.fillStyle = activeConf.color;
+            canvasCtx.fill();
+            canvasCtx.globalAlpha = 1.0;
         }
     }
     canvasCtx.restore();
 }
+
 const faceMesh = new FaceMesh({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
 faceMesh.onResults(onResults);
+
 const camera = new Camera(videoElement, { onFrame: async () => { await faceMesh.send({image: videoElement}); }, width: 1280, height: 720 });
 camera.start();
 </script>
