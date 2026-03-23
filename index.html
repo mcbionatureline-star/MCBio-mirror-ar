@@ -2,74 +2,41 @@
 <html lang="it">
 <head>
    <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>MC Bio Nature - Luxury Experience</title>
-
    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Montserrat:wght@200;300;500&display=swap" rel="stylesheet">
-
+   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
    <style>
-       :root { --gold: #c5a059; --dark-bg: #070807; --glass: rgba(0, 0, 0, 0.7); }
-       body { margin: 0; background: var(--dark-bg); font-family: 'Montserrat', sans-serif; color: white; overflow: hidden; position: fixed; width: 100%; height: 100%; }
-
+       :root { --gold: #c5a059; --dark: #070807; }
+       body { margin: 0; background: var(--dark); font-family: 'Montserrat', sans-serif; color: white; overflow: hidden; }
        #mirror-container { position: relative; width: 100vw; height: 100vh; }
        video, canvas { position: absolute; height: 100%; width: 100%; object-fit: cover; transform: scaleX(-1); }
-
-       #welcome-screen {
-           position: absolute; z-index: 2000; inset: 0; 
-           background: radial-gradient(circle at center, #1a1c1a 0%, #070807 100%);
-           display: flex; flex-direction: column; align-items: center; justify-content: center;
-           transition: opacity 1s ease;
-       }
-       .logo-img { width: 200px; margin-bottom: 50px; filter: drop-shadow(0 0 15px rgba(197,160,89,0.2)); }
-       
-       .path-btn {
-           width: 280px; padding: 18px; border: 1px solid var(--gold); background: rgba(197,160,89,0.03);
-           color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 20px; letter-spacing: 4px; 
-           cursor: pointer; font-size: 0.8rem; transition: 0.5s; backdrop-filter: blur(5px);
-       }
-
-       #info-panel {
-           position: absolute; top: 25px; left: 15px; right: 15px;
-           background: var(--glass); padding: 18px; border-top: 1px solid var(--gold);
-           display: none; z-index: 1000; backdrop-filter: blur(15px); border-radius: 0 0 10px 10px;
-       }
-       #p-name { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1rem; margin: 0; text-align: center; letter-spacing: 2px; }
-       
-       .buy-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
-       .btn-buy { border: 1px solid var(--gold); color: var(--gold); padding: 8px 16px; text-decoration: none; font-size: 0.6rem; letter-spacing: 2px; }
-       #qrcode { background: white; padding: 4px; border-radius: 2px; }
-       #qrcode img { width: 40px !important; height: 40px !important; }
-
-       #product-ui { 
-           position: absolute; bottom: 135px; width: 100%; 
-           display: none; justify-content: center; z-index: 1000; 
-       }
-       .shelf { display: flex; gap: 10px; padding: 10px; overflow-x: auto; max-width: 95%; scrollbar-width: none; }
-       .prod-item {
-           padding: 12px 18px; border: 1px solid rgba(197,160,89,0.2); background: rgba(0,0,0,0.8);
-           color: rgba(255,255,255,0.7); font-size: 0.6rem; white-space: nowrap; cursor: pointer; font-weight: 300;
-       }
-       .prod-item.active { border: 1px solid var(--gold); background: rgba(197,160,89,0.2); color: var(--gold); font-weight: 500; }
-
-       .btn-back { position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 0.55rem; border-bottom: 1px solid var(--gold); text-decoration: none; z-index: 1100; display:none; letter-spacing: 2px; }
+       #welcome-screen { position: absolute; z-index: 2000; inset: 0; background: var(--dark); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+       .logo-img { width: 220px; margin-bottom: 50px; }
+       .path-btn { width: 300px; padding: 20px; border: 1px solid var(--gold); color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 20px; letter-spacing: 4px; cursor: pointer; text-align: center; }
+       #info-panel { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(0,0,0,0.8); padding: 15px; border: 1px solid var(--gold); display: none; z-index: 1000; backdrop-filter: blur(10px); }
+       #p-name { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.1rem; margin: 0; text-align: center; text-transform: uppercase; }
+       .buy-row { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; }
+       .btn-buy { background: var(--gold); color: #000; padding: 10px 20px; text-decoration: none; font-weight: 700; font-size: 0.7rem; }
+       #product-ui { position: absolute; bottom: 130px; width: 100%; display: none; justify-content: center; z-index: 1000; }
+       .shelf { display: flex; gap: 10px; padding: 10px; overflow-x: auto; max-width: 95%; }
+       .prod-item { padding: 12px 20px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-size: 0.7rem; white-space: nowrap; cursor: pointer; }
+       .prod-item.active { background: var(--gold); color: #000; font-weight: 700; box-shadow: 0 0 15px var(--gold); }
+       .btn-back { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 0.6rem; text-decoration: underline; z-index: 1100; display:none; cursor: pointer; }
    </style>
 </head>
 <body>
-
 <div id="mirror-container">
    <video id="input_video" style="display:none"></video>
    <canvas id="output_canvas"></canvas>
-
    <div id="welcome-screen">
        <img src="logo.jpg" class="logo-img">
        <div class="path-btn" onclick="openPath('pura')">PURA LINFA</div>
        <div class="path-btn" onclick="openPath('sorgente')">SORGENTE</div>
        <div class="path-btn" onclick="openPath('forza')">FORZA NATURA</div>
    </div>
-
    <div id="info-panel">
        <h2 id="p-name"></h2>
        <div class="buy-row">
@@ -77,41 +44,33 @@
            <div id="qrcode"></div>
        </div>
    </div>
-
-   <div id="btn-reset" class="btn-back" onclick="location.reload()">TORNA AI PERCORSI</div>
+   <div id="btn-reset" class="btn-back" onclick="location.reload()">CAMBIA PERCORSO</div>
    <div id="product-ui">
        <div id="shelf-list" class="shelf"></div>
    </div>
 </div>
-
 <script>
-const SITE = "https://www.mcbionatureline.com";
+const SITE = "https://www.mcbionatureline.com"; 
 const DATABASE = {
    'pura': [
-       { name: 'MOUSSE STRUCCANTE', url: '/mousse-detergente-viso', color:'rgba(255,255,255,0.2)', glow:15 },
-       { name: 'GEL ESFOLIANTE', url: '/gel-esfoliante-viso', color:'rgba(255,200,200,0.15)', glow:10 }
+       { name: 'MOUSSE', url: '/mousse', color:'#FFFFFF', glow:15 },
+       { name: 'ESFOLIANTE', url: '/esfoliante', color:'#FFCCCC', glow:15 }
    ],
    'sorgente': [
-       { name: 'SIERO IDRATANTE', url: '/siero-idratante-viso', color:'rgba(100,220,255,0.3)', glow:35 },
-       { name: 'SIERO ANTI-AGE', url: '/siero-viso-anti-age', color:'rgba(200,160,255,0.35)', glow:40 }
+       { name: 'SIERO IDRATANTE', url: '/siero-idratante', color:'#00E5FF', glow:50 },
+       { name: 'SIERO ANTI-AGE', url: '/siero-antiage', color:'#CC00FF', glow:60 }
    ],
    'forza': [
-       { name: 'MELOGRANO ANTI-AGE', url: '/crema-viso-melograno', color:'rgba(255,130,130,0.25)', glow:20 },
-       { name: 'NUTRIENTE CERAMIDI', url: '/crema-viso-nutriente', color:'rgba(255,210,120,0.35)', glow:30 },
-       { name: '4 CORTECCE STRONG', url: '/crema-viso-4-cortecce', color:'rgba(230,170,110,0.4)', glow:45 }
+       { name: 'MELOGRANO', url: '/melograno', color:'#FF3333', glow:30 },
+       { name: 'NUTRIENTE', url: '/nutriente', color:' #FFD700', glow:45 },
+       { name: '4 CORTECCE', url: '/4-cortecce', color:'#FF8C00', glow:55 }
    ]
 };
-
 let activeConf = null;
-
 function openPath(id) {
-   document.getElementById('welcome-screen').style.opacity = '0';
-   setTimeout(() => {
-       document.getElementById('welcome-screen').style.display = 'none';
-       document.getElementById('product-ui').style.display = 'flex';
-       document.getElementById('btn-reset').style.display = 'block';
-   }, 1000);
-
+   document.getElementById('welcome-screen').style.display = 'none';
+   document.getElementById('product-ui').style.display = 'flex';
+   document.getElementById('btn-reset').style.display = 'block';
    const shelf = document.getElementById('shelf-list');
    shelf.innerHTML = '';
    DATABASE[id].forEach((p, index) => {
@@ -127,7 +86,6 @@ function openPath(id) {
        if(index === 0) item.click(); 
    });
 }
-
 function displayProduct(p) {
    document.getElementById('info-panel').style.display = 'block';
    document.getElementById('p-name').innerText = p.name;
@@ -136,18 +94,15 @@ function displayProduct(p) {
    new QRCode(document.getElementById('qrcode'), { text: SITE + p.url, width: 40, height: 40 });
    activeConf = p;
 }
-
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('output_canvas');
 const canvasCtx = canvasElement.getContext('2d');
-
 function onResults(results) {
     canvasElement.width = window.innerWidth;
     canvasElement.height = window.innerHeight;
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-    
     if (results.multiFaceLandmarks && activeConf) {
         for (const landmarks of results.multiFaceLandmarks) {
             canvasCtx.beginPath();
@@ -157,29 +112,21 @@ function onResults(results) {
                 if(i===0) canvasCtx.moveTo(x,y); else canvasCtx.lineTo(x,y);
             });
             canvasCtx.closePath();
-            
-            canvasCtx.globalCompositeOperation = "screen"; 
-            canvasCtx.fillStyle = activeConf.color;
-            canvasCtx.fill();
-
+            // SOLO BAGLIORE SUI BORDI - NIENTE "CENERE" SUL VISO
+            canvasCtx.globalCompositeOperation = "screen";
             canvasCtx.shadowBlur = activeConf.glow;
             canvasCtx.shadowColor = activeConf.color;
             canvasCtx.strokeStyle = activeConf.color;
-            canvasCtx.lineWidth = 1;
+            canvasCtx.lineWidth = 5;
             canvasCtx.stroke();
         }
     }
     canvasCtx.restore();
 }
-
 const faceMesh = new FaceMesh({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
 faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
 faceMesh.onResults(onResults);
-
-const camera = new Camera(videoElement, {
-   onFrame: async () => { await faceMesh.send({image: videoElement}); },
-   width: 1280, height: 720
-});
+const camera = new Camera(videoElement, { onFrame: async () => { await faceMesh.send({image: videoElement}); }, width: 1280, height: 720 });
 camera.start();
 </script>
 </body>
