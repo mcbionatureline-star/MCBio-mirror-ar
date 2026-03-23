@@ -1,183 +1,174 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC Bio Nature Line - Luxury AR Mirror</title>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <title>MC Bio Nature - Luxury Experience</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
 
-    <style>
-        :root { --gold: #d4af37; --dark-green: #0f1410; --white: #ffffff; }
-        body { margin: 0; background: #000; font-family: 'Montserrat', sans-serif; color: var(--white); overflow: hidden; }
+   <style>
+       :root { --gold: #c5a059; --light-gold: #e5d1a4; --dark: #0a0c0b; }
+       body { margin: 0; background: var(--dark); font-family: 'Montserrat', sans-serif; color: white; overflow: hidden; position: fixed; width: 100%; height: 100%; }
 
-        #mirror-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; }
-        video, canvas { position: absolute; height: 100vh; width: 100vw; object-fit: cover; transform: scaleX(-1); }
+       #mirror-container { position: relative; width: 100vw; height: 100vh; }
+       video, canvas { position: absolute; height: 100%; width: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* --- SCHERMATA BENVENUTO --- */
-        #welcome-screen {
-            position: absolute; z-index: 1000; inset: 0; background: rgba(10, 15, 12, 0.9);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-            backdrop-filter: blur(15px); transition: 0.8s;
-        }
-        .logo-title { font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--gold); margin: 0; }
-        .logo-subtitle { letter-spacing: 5px; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 40px; color: #aaa; }
+       /* --- SCHERMATA BOUTIQUE INIZIALE --- */
+       #welcome-screen {
+           position: absolute; z-index: 2000; inset: 0; 
+           background: radial-gradient(circle, #1a1d1b 0%, #0a0c0b 100%);
+           display: flex; flex-direction: column; align-items: center; justify-content: center; 
+           text-align: center; transition: 1s ease-in-out; padding: 20px;
+       }
+       
+       .logo-img { width: 220px; margin-bottom: 10px; filter: drop-shadow(0 0 8px rgba(197,160,89,0.3)); }
+       .boutique-sub { font-size: 0.65rem; letter-spacing: 3px; color: var(--light-gold); margin-bottom: 30px; font-weight: 200; text-transform: uppercase; }
 
-        .path-selector { display: flex; gap: 25px; }
-        .path-card {
-            width: 180px; padding: 40px 10px; border: 1px solid rgba(212,175,55,0.4); border-radius: 100px;
-            cursor: pointer; transition: 0.4s; background: rgba(255,255,255,0.03);
-        }
-        .path-card:hover { border-color: var(--gold); background: rgba(212,175,55,0.15); transform: translateY(-10px); }
-        .path-card h3 { font-size: 0.8rem; letter-spacing: 2px; color: var(--gold); margin: 0; }
+       .path-list { display: flex; flex-direction: column; gap: 12px; }
+       .path-btn {
+           width: 240px; padding: 16px; border: 1px solid var(--gold); border-radius: 0;
+           background: transparent; color: var(--gold); font-family: 'Cinzel', serif;
+           font-size: 0.85rem; cursor: pointer; transition: 0.4s; letter-spacing: 2px;
+       }
+       .path-btn:hover { background: var(--gold); color: var(--dark); }
 
-        /* --- INTERFACCIA PRODOTTI --- */
-        #product-ui {
-            position: absolute; bottom: 50px; width: 100%; display: none;
-            flex-direction: column; align-items: center; z-index: 100;
-        }
-        .shelf { display: flex; gap: 15px; padding: 15px; max-width: 90%; overflow-x: auto; scrollbar-width: none; }
-        .prod-btn {
-            padding: 12px 25px; border-radius: 50px; background: rgba(0,0,0,0.6); border: 1px solid var(--gold);
-            color: white; cursor: pointer; transition: 0.3s; font-size: 0.85rem; white-space: nowrap;
-        }
-        .prod-btn.active { background: var(--gold); color: black; font-weight: 600; }
+       /* --- INTERFACCIA MIRROR --- */
+       #info-panel {
+           position: absolute; top: 20px; left: 15px; right: 15px;
+           background: rgba(0, 0, 0, 0.75); padding: 18px; border-top: 2px solid var(--gold);
+           display: none; backdrop-filter: blur(12px); border-radius: 0 0 15px 15px;
+       }
+       #p-name { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.2rem; margin: 0; }
+       #p-desc { font-size: 0.75rem; margin: 8px 0; line-height: 1.4; color: #eee; font-weight: 300; }
+       
+       .buy-area { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; border-top: 1px solid rgba(197,160,89,0.2); padding-top: 12px; }
+       .btn-buy { 
+           background: var(--gold); color: var(--dark); padding: 10px 18px; 
+           text-decoration: none; font-weight: 700; font-size: 0.7rem; 
+           letter-spacing: 1px; text-transform: uppercase;
+       }
+       
+       #qrcode { background: white; padding: 4px; border-radius: 0; line-height: 0; }
+       #qrcode img { width: 55px !important; height: 55px !important; }
 
-        /* --- SCHEDA PRODOTTO & QR --- */
-        #info-panel {
-            position: absolute; top: 80px; left: 40px; width: 300px;
-            background: rgba(15, 20, 16, 0.85); padding: 30px; border-radius: 20px;
-            border-left: 3px solid var(--gold); display: none; backdrop-filter: blur(10px);
-        }
-        #info-panel h2 { font-family: 'Playfair Display', serif; margin: 0 0 10px 0; color: var(--gold); font-size: 1.6rem; }
-        .ingr-highlight { color: var(--gold); font-style: italic; font-size: 0.8rem; margin-bottom: 15px; display: block; }
-        #qrcode-box { background: white; padding: 10px; border-radius: 10px; display: inline-block; margin-top: 20px; }
+       #product-ui { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: center; z-index: 100; }
+       .shelf { display: flex; gap: 10px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; width: 90%; }
+       .prod-item {
+           padding: 10px 18px; border: 1px solid rgba(197,160,89,0.4); background: rgba(0,0,0,0.8);
+           color: var(--light-gold); font-size: 0.65rem; letter-spacing: 1px; white-space: nowrap; cursor: pointer;
+       }
+       .prod-item.active { border-color: var(--gold); background: var(--gold); color: var(--dark); font-weight: 600; }
 
-        .back-nav { position: absolute; top: 30px; right: 40px; background: none; border: 1px solid var(--gold); color: var(--gold); padding: 10px 20px; border-radius: 25px; cursor: pointer; z-index: 500; display: none; }
-    </style>
+       .btn-back { position: absolute; bottom: 90px; right: 20px; color: var(--gold); font-size: 0.6rem; letter-spacing: 2px; cursor: pointer; text-decoration: underline; display:none; }
+       
+       /* Piccolo logo fisso in alto durante l'uso */
+       .mini-logo { position: absolute; top: 10px; right: 15px; width: 50px; opacity: 0.7; z-index: 50; display:none; }
+   </style>
 </head>
 <body>
 
 <div id="mirror-container">
-    <video id="input_video" style="display:none"></video>
-    <canvas id="output_canvas"></canvas>
+   <video id="input_video" style="display:none"></video>
+   <canvas id="output_canvas"></canvas>
+   <img src="logo.jpg" class="mini-logo" id="m-logo">
 
-    <button id="btn-reset" class="back-nav" onclick="location.reload()">← NUOVO PERCORSO</button>
+   <div id="welcome-screen">
+       <img src="logo.jpg" class="logo-img" alt="MC Bio Nature Logo">
+       <p class="boutique-sub">Smart Boutique Experience</p>
+       
+       <div class="path-list">
+           <button class="path-btn" onclick="openPath('pura')">PURA LINFA</button>
+           <button class="path-btn" onclick="openPath('sorgente')">SORGENTE</button>
+           <button class="path-btn" onclick="openPath('forza')">FORZA NATURA</button>
+       </div>
+   </div>
 
-    <div id="welcome-screen">
-        <div class="logo-area">
-            <h1 class="logo-title">MC Bio Nature</h1>
-            <p class="logo-subtitle">Smart Mirror Experience</p>
-        </div>
-        <p style="margin-bottom: 30px; font-weight: 300;">Seleziona l'obiettivo della tua bellezza oggi:</p>
-        <div class="path-selector">
-            <div class="path-card" onclick="openPath('pura')">
-                <h3>PURA LINFA</h3>
-                <p style="font-size:0.6rem; margin-top:10px;">Detersione</p>
-            </div>
-            <div class="path-card" onclick="openPath('sorgente')">
-                <h3>SORGENTE</h3>
-                <p style="font-size:0.6rem; margin-top:10px;">Idratazione</p>
-            </div>
-            <div class="path-card" onclick="openPath('forza')">
-                <h3>FORZA NATURA</h3>
-                <p style="font-size:0.6rem; margin-top:10px;">Rigenerazione</p>
-            </div>
-        </div>
-    </div>
+   <div id="info-panel">
+       <h2 id="p-name"></h2>
+       <p id="p-desc"></p>
+       <div class="buy-area">
+           <a id="buy-link" href="#" target="_blank" class="btn-buy">SCOPRI E ACQUISTA</a>
+           <div id="qrcode"></div>
+       </div>
+   </div>
 
-    <div id="info-panel">
-        <span class="ingr-highlight" id="p-tag"></span>
-        <h2 id="p-name"></h2>
-        <p id="p-desc" style="font-size:0.85rem; line-height:1.6; color: #ddd;"></p>
-        <div id="qrcode-box"><div id="qrcode"></div></div>
-        <p style="font-size:0.65rem; color: var(--gold); margin-top:12px; font-weight:600;">INQUADRA PER ACQUISTARE</p>
-    </div>
+   <div id="btn-reset" class="btn-back" onclick="location.reload()">CAMBIA PERCORSO</div>
 
-    <div id="product-ui">
-        <div id="shelf-list" class="shelf"></div>
-    </div>
+   <div id="product-ui">
+       <div id="shelf-list" class="shelf"></div>
+   </div>
 </div>
 
 <script>
 const SITE = "https://www.mcbionatureline.com";
-
 const DATABASE = {
-    'pura': [
-        { name: 'Mousse Struccante', tag: 'Nuvola Delicata', desc: 'Elimina impurità e stress con una texture soffice e naturale.', url: '/mousse', conf: {blur:2, color:'rgba(255,255,255,0.1)'} },
-        { name: 'Gel Esfoliante', tag: 'Perle di Luce', desc: 'Leviga la grana della pelle risvegliando la luminosità naturale.', url: '/esfoliante', conf: {blur:0, color:'rgba(255,200,200,0.1)'} }
-    ],
-    'sorgente': [
-        { name: 'Siero Doppio Peso', tag: 'Acido Ialuronico Puro', desc: 'Idratazione a più livelli per un effetto rimpolpante visibile.', url: '/siero-idratante', conf: {blur:1, color:'rgba(173,216,230,0.12)', glow:15} }
-    ],
-    'forza': [
-        { name: 'Anti-Age Melograno', tag: 'Melograno & Ialuronico', desc: 'Azione antiossidante per un viso radioso e protetto.', url: '/crema-melograno', conf: {blur:6, color:'rgba(255,190,190,0.08)', glow:8} },
-        { name: 'Anti-Age Strong', tag: 'Potere di 4 Cortecce', desc: 'Effetto lifting profondo grazie alla forza degli alberi.', url: '/crema-4-cortecce', conf: {blur:14, color:'rgba(210,180,140,0.15)'} },
-        { name: 'Crema Nutriente', tag: 'Ceramidi & Cera d\'Api', desc: 'Scudo protettivo e nutrimento intenso per pelli secche.', url: '/crema-nutriente', conf: {blur:4, color:'rgba(255,245,220,0.18)', contrast:-0.1} }
-    ]
+   'pura': [
+       { name: 'MOUSSE STRUCCANTE', desc: 'Detersione soffice e profonda per una pelle rigenerata.', url: '/mousse', conf: {blur:4, color:'rgba(255,255,255,0.18)', glow:15} },
+       { name: 'GEL ESFOLIANTE', desc: 'Rivitalizza il derma eliminando le impurità.', url: '/esfoliante', conf: {blur:1, color:'rgba(255,235,235,0.12)', glow:5} }
+   ],
+   'sorgente': [
+       { name: 'SIERO DOPPIO PESO', desc: 'Idratazione rimpolpante intensa ad assorbimento rapido.', url: '/siero-idratante', conf: {blur:1, color:'rgba(173,216,230,0.25)', glow:35} }
+   ],
+   'forza': [
+       { name: 'ANTI-AGE MELOGRANO', desc: 'Protezione antiossidante per un viso radioso.', url: '/crema-melograno', conf: {blur:6, color:'rgba(255,200,150,0.2)', glow:15} },
+       { name: 'ANTI-AGE STRONG', desc: 'Il potere delle 4 cortecce per un effetto lifting visibile.', url: '/crema-4-cortecce', conf: {blur:15, color:'rgba(197,160,89,0.25)', glow:20} }
+   ]
 };
 
 let activeConf = null;
 
 function openPath(id) {
-    document.getElementById('welcome-screen').style.opacity = '0';
-    setTimeout(() => {
-        document.getElementById('welcome-screen').style.display = 'none';
-        document.getElementById('product-ui').style.display = 'flex';
-        document.getElementById('btn-reset').style.display = 'block';
-    }, 600);
+   document.getElementById('welcome-screen').style.opacity = '0';
+   setTimeout(() => {
+       document.getElementById('welcome-screen').style.display = 'none';
+       document.getElementById('product-ui').style.display = 'flex';
+       document.getElementById('btn-reset').style.display = 'block';
+       document.getElementById('m-logo').style.display = 'block';
+   }, 800);
 
-    const shelf = document.getElementById('shelf-list');
-    shelf.innerHTML = '';
-    DATABASE[id].forEach(p => {
-        const btn = document.createElement('div');
-        btn.className = 'prod-btn';
-        btn.innerText = p.name;
-        btn.onclick = () => {
-            document.querySelectorAll('.prod-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            displayProduct(p);
-        };
-        shelf.appendChild(btn);
-    });
+   const shelf = document.getElementById('shelf-list');
+   shelf.innerHTML = '';
+   DATABASE[id].forEach(p => {
+       const item = document.createElement('div');
+       item.className = 'prod-item';
+       item.innerText = p.name;
+       item.onclick = () => {
+           document.querySelectorAll('.prod-item').forEach(i => i.classList.remove('active'));
+           item.classList.add('active');
+           displayProduct(p);
+       };
+       shelf.appendChild(item);
+   });
 }
 
 function displayProduct(p) {
-    const panel = document.getElementById('info-panel');
-    panel.style.display = 'block';
-    document.getElementById('p-name').innerText = p.name;
-    document.getElementById('p-tag').innerText = p.tag;
-    document.getElementById('p-desc').innerText = p.desc;
-
-    document.getElementById('qrcode').innerHTML = '';
-    new QRCode(document.getElementById('qrcode'), {
-        text: SITE + p.url,
-        width: 110, height: 110,
-        colorDark : "#000000",
-        colorLight : "#ffffff"
-    });
-
-    activeConf = p.conf;
+   document.getElementById('info-panel').style.display = 'block';
+   document.getElementById('p-name').innerText = p.name;
+   document.getElementById('p-desc').innerText = p.desc;
+   document.getElementById('buy-link').href = SITE + p.url;
+   document.getElementById('qrcode').innerHTML = '';
+   new QRCode(document.getElementById('qrcode'), { text: SITE + p.url, width: 55, height: 55 });
+   activeConf = p.conf;
 }
 
-// --- CONFIGURAZIONE AI MEDIAPIPE ---
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('output_canvas');
 const canvasCtx = canvasElement.getContext('2d');
 
 function onResults(results) {
+    canvasElement.width = window.innerWidth;
+    canvasElement.height = window.innerHeight;
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
     if (results.multiFaceLandmarks && activeConf) {
         for (const landmarks of results.multiFaceLandmarks) {
             canvasCtx.beginPath();
-            // Punti chiave contorno viso
             [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109].forEach((idx, i) => {
                 let x = landmarks[idx].x * canvasElement.width;
                 let y = landmarks[idx].y * canvasElement.height;
@@ -198,8 +189,8 @@ faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfide
 faceMesh.onResults(onResults);
 
 const camera = new Camera(videoElement, {
-    onFrame: async () => { await faceMesh.send({image: videoElement}); },
-    width: 1280, height: 720
+   onFrame: async () => { await faceMesh.send({image: videoElement}); },
+   width: 1280, height: 720
 });
 camera.start();
 </script>
